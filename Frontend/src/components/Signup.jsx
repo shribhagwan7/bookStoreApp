@@ -1,16 +1,41 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Login from './Login'; // Assuming you have a modal Login form
 import { useForm } from "react-hook-form";
+import axios from 'axios';
 
 function Signup() {
+  const location=useLocation();
+  const nevigate=useNavigate();
+  const from=location.state?.from?.pathname || "/";
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
     
-  const onSubmit = (data) => console.log(data);
+  const onSubmit =async (data) => {
+    const userInfo = {
+      fullname:data.fullname,
+      email:data.email,
+      password:data.password,
+    }
+    await axios.post("http://localhost:4001/user/signup",userInfo)
+    .then((res)=>{
+      console.log(res.data);
+      if(res.data){
+        alert("Signup successfully");
+        nevigate(from,{replace:true});
+      }
+      localStorage.setItem("Users",JSON.stringify(res.data.user));
+    })
+    .catch((err)=>{
+      if(err.response){
+        console.log(err);
+        alert("Error: "+ err.response.data.message);
+      }
+    });
+  };
 
   return (
     <>
@@ -28,11 +53,11 @@ function Signup() {
                 <span>Name</span><br/>
                 <input 
                   type="text" 
-                  placeholder="Enter your name" 
+                  placeholder="Enter your fullname" 
                   className="w-80 px-3 py-1 border rounded-md outline-none"
-                  {...register("name", { required: true })}
+                  {...register("fullname", { required: true })}
                 />
-                {errors.name && <p className="text-red-500">Name is required</p>}
+                {errors.fullname && <p className="text-red-500">Name is required</p>}
               </div>
 
               {/* Email */}
